@@ -1,25 +1,57 @@
-export CFCAlertLib
+class RankManager
+    new: =>
+        -- Generate ordered ulx groups
+        flatten = (list, flattened) ->
+            flattened or= {}
 
--- Generate ordered ulx groups
-flatten = (list, flattened) ->
-    flattened = flattened or {}
-    for k, v in pairs list
-        table.insert flattened, k
-        flatten v, flattened
+            for k, v in pairs list
+                table.insert flattened, k
+                return flatten v, flattened
 
-    return flattened
+            flattened
 
-gScoreboard.OrderedGroups = {}
-ulxGroups = ULib.ucl.getInheritanceTree!
+        ulx_groups = ULib.ucl.getInheritanceTree!
 
-for _, group in pairs flatten(ulxGroups)
-    table.insert gScoreboard.OrderedGroups, group
+        @ordered_groups = [rank for _,rank in ulx_groups]
+        @group_lookup = table.Reverse @ordered_groups
+
+    at_least: (rank) =>
+        min_index = @group_lookup[rank]
+
+        [x for x=min_index, #@ordered_groups]
+
+    at_most: (rank) =>
+        max_index = @group_lookup[rank]
+
+        [@group_lookup[x] for x=0, max_index]
+
+    all: =>
+        @ordered_groups
 
 -- AlertingLibrary
+export CFCAlertLib
 class CFCAlertLib
+    new: (addon_name) =>
+        @addon_name = addon_name
+        @ranks = RankManager!
 
-    AlertRanks: (message, rank, op="=")
+    get_message: (message) =>
+        "[#{@addon_name}] #{message}}"
 
-    AlertStaff: (message) =>
-        for key, player in pairs player.GetAll!
-            player\ChatPrint message
+    alert_ranks: (message, ranks) =>
+        rank_lookup = {v,true for _,v in pairs ranks}
+
+        for _, ply in pairs player.GetAll!
+            rank = ply\Team!
+            if rank_lookup[rank]
+                ply\ChatPrint @get_message(message)
+
+    alert_staff: (message) =>
+        ranks = @ranks\at_least("moderator")
+        @alert_ranks message, ranks
+
+    alert_rank: (message, rank) =>
+        @alert_ranks message, {rank}
+
+    alert_all: (message) =>
+        @alert_ranks message, @ranks\all
