@@ -18,7 +18,7 @@ class RankManager
     at_least: (rank) =>
         min_index = @group_lookup[rank]
 
-        [x for x=min_index, #@ordered_groups]
+        [@group_lookup[x] for x=min_index, #@ordered_groups]
 
     at_most: (rank) =>
         max_index = @group_lookup[rank]
