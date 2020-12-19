@@ -1,6 +1,6 @@
 RankManager = include "alerter/rank_manager.lua"
 
-class CFCAlerter
+export class CFCAlerter
     new: (addon_name) =>
         @addon_name = addon_name
         @ranks = RankManager!
@@ -10,10 +10,10 @@ class CFCAlerter
 
     alert_players: (message, plys) =>
         for ply in *plys
-            ply\ChatPrint @format_message(message)
+            ply\ChatPrint @format_message message
 
     alert_ranks: (message, ranks) =>
-        rank_lookup = {v,true for _,v in pairs ranks}
+        rank_lookup = {v, true for v in *ranks}
 
         is_correct_rank = (ply) -> rank_lookup[ply\Team!] ~= nil
 
@@ -22,15 +22,15 @@ class CFCAlerter
         @alert_players message, plys
 
     alert_staff: (message) =>
-        ranks = @ranks\at_least("sentinel")
+        ranks = @ranks\at_least "sentinel"
         @alert_ranks message, ranks
 
     alert_admins: (message) =>
-        ranks = @ranks\at_least("admin")
+        ranks = @ranks\at_least "admin"
         @alert_ranks message, ranks
 
     alert_rank: (message, rank) =>
         @alert_ranks message, {rank}
 
     alert_all: (message) =>
-        @alert_ranks message, @ranks\all
+        @alert_ranks message, @ranks\all!
