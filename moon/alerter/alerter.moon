@@ -5,32 +5,31 @@ export class CFCAlerter
         @addon_name = addon_name
         @ranks = RankManager!
 
-    format_message: (message) =>
+    formatMessage: (message) =>
         "[#{@addon_name}] #{message}}"
 
-    alert_players: (message, plys) =>
+    alertPlayers: (plys, message) =>
         for ply in *plys
-            ply\ChatPrint @format_message message
+            ply\ChatPrint @formatMessage message
 
-    alert_ranks: (message, ranks) =>
+    alertRanks: (ranks, message) =>
         rank_lookup = {v, true for v in *ranks}
 
         is_correct_rank = (ply) -> rank_lookup[ply\Team!] ~= nil
-
         plys = [ply for ply in *player.GetAll! when is_correct_rank ply]
 
-        @alert_players message, plys
+        @alertPlayers plys, message
 
-    alert_staff: (message) =>
-        ranks = @ranks\at_least "sentinel"
-        @alert_ranks message, ranks
+    alertStaff: (message) =>
+        ranks = @ranks\at_least "moderator"
+        @alertRanks ranks, message
 
-    alert_admins: (message) =>
+    alertAdmins: (message) =>
         ranks = @ranks\at_least "admin"
-        @alert_ranks message, ranks
+        @alertRanks ranks, message
 
-    alert_rank: (message, rank) =>
-        @alert_ranks message, {rank}
+    alertRank: (message, rank) =>
+        @alertRanks {rank}, message
 
-    alert_all: (message) =>
-        @alert_ranks message, @ranks\all!
+    alertAll: (message) =>
+        @alertRanks @ranks\all!, message
